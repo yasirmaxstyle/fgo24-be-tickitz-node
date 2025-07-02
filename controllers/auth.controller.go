@@ -19,7 +19,6 @@ import (
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /auth/register [post]
-
 func Register(c *gin.Context) {
 	var req models.RegisterRequest
 	if err := c.ShouldBind(&req); err != nil {
@@ -48,4 +47,31 @@ func Register(c *gin.Context) {
 		Message: "user registered successfully",
 		Data:    user,
 	})
+}
+
+// Login godoc
+// @Summary Login user
+// @Description Login user with email and password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body models.LoginRequest true "Login request"
+// @Success 200 {object} models.AuthResponse
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /auth/login [post]
+func Login(ctx *gin.Context) {
+	var req models.LoginRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	response, err := models.Login(&req)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
 }
