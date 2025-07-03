@@ -8,8 +8,8 @@ direction TB
     user ||--O|profile : has
     user ||--o{transactions : creates
 
-    transactions_details }o--||movies : contains
-    transactions |o--|{transactions_details : has
+    tickets }o--||movies : contains
+    transactions |o--|{tickets : contains
     transactions }|--||payment_method : uses
 
     movies ||--o{movies_genres : has
@@ -40,26 +40,29 @@ direction TB
     
     transactions{
         int transactions_id PK
+	string transaction_code UK
         string email
         string full_name
         string phone_number
         int total_seats
-        decimal amout
-        boolean is_paid
+        decimal total_amout
+        string status "pending, paid, cancelled"
         timestamp created_at
-        timestamp due_time
-        boolean is_due
+        timestamp expires_at
+        timestamp paid_at
         string created_by FK
         string payment_id FK
     }
 
-    transactions_details{
-        int details_id PK
+    tickets{
+        int ticket_id PK
+	string ticket_code UK
         string cinema_name
-        string location
-        datetime time
+        string cinema_location
+        time time
         date date
         string seat_number
+	string status "booked, used, cancelled"
         int transactions_id FK
         int movie_id FK
     }
@@ -67,6 +70,7 @@ direction TB
     payment_method{
         int payment_id PK
         string name
+	boolean is_active
     }
 
     movies{
@@ -104,5 +108,4 @@ direction TB
         string first_name
         string last_name
     }
-
 ```
