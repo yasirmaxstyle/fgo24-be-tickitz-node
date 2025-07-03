@@ -172,11 +172,11 @@ func ForgotPassword(email string) (*APIResponse, error) {
 			Message: "If the email exists, a reset link has been sent",
 		}, nil
 	} else if err != nil {
-		return nil, fmt.Errorf("Database error: %w", err)
+		return nil, fmt.Errorf("database error: %w", err)
 	}
 	token, err := generateToken()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to generate token: %w", err)
+		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
 
 	// Set expiration time (1 hour from now)
@@ -187,12 +187,12 @@ func ForgotPassword(email string) (*APIResponse, error) {
 		userID, token, expiresAt)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create reset token")
+		return nil, fmt.Errorf("failed to create reset token")
 	}
 
 	if err := sendResetEmail(email, token); err != nil {
 		log.Printf("Failed to send reset email: %v", err)
-		return nil, fmt.Errorf("Failed to send reset email")
+		return nil, fmt.Errorf("failed to send reset email")
 	}
 
 	return &APIResponse{
