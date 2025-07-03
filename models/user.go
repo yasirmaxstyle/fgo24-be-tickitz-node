@@ -22,12 +22,13 @@ type User struct {
 	PasswordHash string     `json:"-" db:"password_hash"`
 	CreatedAt    time.Time  `json:"createdAt" db:"created_at"`
 	UpdatedAt    time.Time  `json:"updatedAt" db:"updated_at"`
-	LastLogin    *time.Time `json:"lastLogin" db:"last_login"`
+	LastLogin    *time.Time `json:"lastLogin,omitempty" db:"last_login"`
 }
 
 type Profile struct {
-	UserID       int        `json:"userId" db:"user_id"`
-	FullName     string     `json:"fullName" db:"full_name"`
+	UserID       *int       `json:"userId" db:"user_id"`
+	FirstName    string     `json:"firstName" db:"first_name"`
+	LastName     string     `json:"lastName" db:"last_name"`
 	Email        string     `json:"email" db:"email"`
 	PasswordHash string     `json:"-" db:"password_hash"`
 	AvatarPath   string     `json:"avatar_path" db:"avatar_path"`
@@ -46,16 +47,16 @@ type PasswordReset struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func CreateUser(req *User) error {
+func CreateUser(req RegisterRequest) (*User, error) {
 	conn, err := utils.ConnectDB()
 	if err != nil {
-		return fmt.Errorf("failed to connect to database: %w", err)
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 	defer utils.CloseDB(conn)
 
 	tx, err := conn.Begin(context.Background())
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer tx.Rollback(context.Background())
 
@@ -64,29 +65,43 @@ func CreateUser(req *User) error {
 		"SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)",
 		req.Email).Scan(&exists)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if exists {
-		return errors.New("user already exists")
+		return nil, errors.New("user already exists")
 	}
 
-	hashedPassword, err := utils.HashPassword(req.PasswordHash)
+	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	var user User
-	err = tx.QueryRow(context.Background(),
-		`INSERT INTO users (email, password_hash, ) 
-        	VALUES ($1, $2, $3) 
-        	RETURNING id, email, created_at, updated_at`,
-		req.Email, string(hashedPassword)).
-		Scan(&user.UserID, &user.Email, &user.CreatedAt, &user.UpdatedAt)
+	user := &User{
+		Email:        req.Email,
+		PasswordHash: hashedPassword,
+	}
+
+	err = tx.QueryRow(context.Background(), `
+		INSERT INTO users (email, password_hash)
+		VALUES ($1, $2)
+		RETURNING user_id`,
+		user.Email, user.PasswordHash).
+		Scan(&user.UserID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return tx.Commit(context.Background())
+	err = tx.QueryRow(context.Background(), `
+		INSERT INTO profile (user_id) 
+		VALUES ($1)
+		RETURNING user_id`,
+		user.UserID).Scan(&user.UserID)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return user, tx.Commit(context.Background())
 }
 
 func Login(req *LoginRequest) (*AuthResponse, error) {
@@ -95,15 +110,16 @@ func Login(req *LoginRequest) (*AuthResponse, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 	defer utils.CloseDB(conn)
+
 	var user User
 	err = conn.QueryRow(context.Background(),
-		"SELECT id, email, password_hash, created_at, updated_at FROM users WHERE email = $1",
+		"SELECT user_id, email, password_hash, created_at, updated_at FROM users WHERE email = $1",
 		req.Email).Scan(&user.UserID, &user.Email, &user.PasswordHash, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		return nil, errors.New("invalid credentials")
 	}
 
-	if !utils.CheckPasswordHash(req.Password, user.PasswordHash) {
+	if err := utils.CheckPasswordHash(req.Password, user.PasswordHash); err != nil {
 		return nil, errors.New("invalid credentials")
 	}
 
