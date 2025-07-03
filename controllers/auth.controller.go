@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"noir-backend/models"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,14 +26,15 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	user := &models.User{
-		Email:     req.Email,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+	if req.Password != req.ConfirmPassword {
+		models.NewError(c, http.StatusBadRequest, "confirm password must match")
+		return
 	}
 
-	if err := models.CreateUser(user); err != nil {
+	user, err := models.CreateUser(req)
+	if err != nil {
 		models.NewError(c, http.StatusInternalServerError, "failed to create user")
+		return
 	}
 
 	c.JSON(http.StatusCreated, models.APIResponse{
