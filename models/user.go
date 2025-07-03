@@ -26,16 +26,15 @@ type User struct {
 }
 
 type Profile struct {
-	UserID       *int       `json:"userId" db:"user_id"`
-	FirstName    string     `json:"firstName" db:"first_name"`
-	LastName     string     `json:"lastName" db:"last_name"`
-	Email        string     `json:"email" db:"email"`
-	PasswordHash string     `json:"-" db:"password_hash"`
-	AvatarPath   string     `json:"avatar_path" db:"avatar_path"`
-	PhoneNumber  string     `json:"phoneNumber" db:"phone_number"`
-	CreatedAt    time.Time  `json:"createdAt" db:"created_at"`
-	UpdatedAt    time.Time  `json:"updatedAt" db:"updated_at"`
-	LastLogin    *time.Time `json:"lastLogin" db:"last_login"`
+	UserID      *int       `json:"userId" db:"user_id"`
+	FirstName   *string    `json:"firstName" db:"first_name"`
+	LastName    *string    `json:"lastName" db:"last_name"`
+	Email       string     `json:"email" db:"email"`
+	AvatarPath  *string    `json:"avatar_path" db:"avatar_path"`
+	PhoneNumber *string    `json:"phoneNumber" db:"phone_number"`
+	CreatedAt   time.Time  `json:"createdAt" db:"created_at"`
+	UpdatedAt   time.Time  `json:"updatedAt" db:"updated_at"`
+	LastLogin   *time.Time `json:"lastLogin" db:"last_login"`
 }
 
 type PasswordReset struct {
@@ -111,11 +110,12 @@ func Login(req *LoginRequest) (*AuthResponse, error) {
 	}
 	defer utils.CloseDB(conn)
 
-	var user User
+	user := &User{}
 	err = conn.QueryRow(context.Background(),
-		"SELECT user_id, email, password_hash, created_at, updated_at FROM users WHERE email = $1",
-		req.Email).Scan(&user.UserID, &user.Email, &user.PasswordHash, &user.CreatedAt, &user.UpdatedAt)
+		"SELECT user_id, email, password_hash, created_at, updated_at, last_login FROM users WHERE email = $1",
+		req.Email).Scan(&user.UserID, &user.Email, &user.PasswordHash, &user.CreatedAt, &user.UpdatedAt, &user.LastLogin)
 	if err != nil {
+		fmt.Println(err)
 		return nil, errors.New("invalid credentials")
 	}
 
@@ -128,15 +128,18 @@ func Login(req *LoginRequest) (*AuthResponse, error) {
 		return nil, err
 	}
 
-	UpdateLastLogin(user.UserID)
+	if err := UpdateLastLogin(&user.UserID); err != nil {
+		return nil, err
+	}
+	// fmt.Println(&user.LastLogin)
 
 	return &AuthResponse{
-		User:  &user,
+		User:  user,
 		Token: token,
 	}, nil
 }
 
-func UpdateLastLogin(userID int) error {
+func UpdateLastLogin(userID *int) error {
 	conn, err := utils.ConnectDB()
 	if err != nil {
 		return err
@@ -154,11 +157,15 @@ func GetUserByID(userID int) (*Profile, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 	defer utils.CloseDB(conn)
+
 	var user Profile
 	err = conn.QueryRow(context.Background(),
-		"SELECT id, email, name, created_at, updated_at FROM users WHERE id = $1",
-		userID).Scan(&user.UserID, &user.Email, &user.CreatedAt, &user.UpdatedAt)
+		`SELECT profile_id, first_name, last_name, email, phone_number, p.created_at, p.updated_at, last_login FROM profile p
+		JOIN users u ON u.user_id = p.user_id
+		WHERE p.user_id = $1`,
+		userID).Scan(&user.UserID, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.CreatedAt, &user.UpdatedAt, &user.LastLogin)
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 	return &user, nil
