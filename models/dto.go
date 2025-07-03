@@ -37,3 +37,16 @@ type ResetPasswordRequest struct {
 	Token       string `json:"token" binding:"required"`
 	NewPassword string `json:"new_password" binding:"required,min=6"`
 }
+
+type HTTPError struct {
+	Error   int    `json:"error"`
+	Message string `json:"message"`
+}
+
+func NewError(c *gin.Context, status int, err string) {
+	er := HTTPError{
+		Error:   status,
+		Message: err,
+	}
+	c.JSON(status, er)
+}
