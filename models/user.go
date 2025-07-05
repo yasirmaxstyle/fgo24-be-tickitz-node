@@ -2,8 +2,6 @@ package models
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -13,7 +11,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -187,7 +184,7 @@ func ForgotPassword(email string) (*APIResponse, error) {
 
 	var userID int
 	err = conn.QueryRow(context.Background(),
-		"SELECT id FROM users WHERE email = $1", email).Scan(&userID)
+		"SELECT user_id FROM users WHERE email = $1", email).Scan(&userID)
 
 	if err == pgx.ErrNoRows {
 		return &APIResponse{
@@ -197,21 +194,12 @@ func ForgotPassword(email string) (*APIResponse, error) {
 	} else if err != nil {
 		return nil, fmt.Errorf("database error: %w", err)
 	}
-	token, err := generateToken()
+	token, err := utils.GenerateTokens(userID, "user")
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate token: %w", err)
+		return nil, fmt.Errorf("failed to generate token reset: %w", err)
 	}
 
-	// Set expiration time (1 hour from now)
-	expiresAt := time.Now().Add(time.Hour)
-
-	_, err = conn.Exec(context.Background(),
-		"INSERT INTO password_resets (user_id, token, expires_at) VALUES ($1, $2, $3)",
-		userID, token, expiresAt)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to create reset token")
-	}
+	utils.InitRedis().Set(context.Background(), fmt.Sprintf("reset-pwd:%s", token), "1", 1*time.Hour).Err()
 
 	if err := sendResetEmail(email, token); err != nil {
 		log.Printf("Failed to send reset email: %v", err)
@@ -225,7 +213,7 @@ func ForgotPassword(email string) (*APIResponse, error) {
 
 }
 
-func ResetPassword(req ResetPasswordRequest) (*APIResponse, *HTTPError) {
+func ResetPassword(req ResetPasswordRequest, token string) (*APIResponse, *HTTPError) {
 	conn, err := utils.ConnectDB()
 	if err != nil {
 		return nil, &HTTPError{
@@ -234,39 +222,25 @@ func ResetPassword(req ResetPasswordRequest) (*APIResponse, *HTTPError) {
 		}
 	}
 
-	var reset PasswordReset
-	err = conn.QueryRow(context.Background(),
-		"SELECT id, user_id, expires_at, used FROM password_resets WHERE token = $1",
-		req.Token).Scan(&reset.ID, &reset.UserID, &reset.ExpiresAt, &reset.Used)
-
-	if err == pgx.ErrNoRows {
+	expCmd := utils.InitRedis().Exists(context.Background(), fmt.Sprintf("reset-pwd:%s", token))
+	if expCmd.Val() == 0 {
 		return nil, &HTTPError{
 			Error:   http.StatusBadRequest,
-			Message: "Invalid reset token",
-		}
-	} else if err != nil {
-		return nil, &HTTPError{
-			Error:   http.StatusInternalServerError,
-			Message: "Database error",
+			Message: "Invalid or expired reset token",
 		}
 	}
 
-	// Check token expired or used
-	if reset.Used {
+	claims, err := utils.ValidateToken(token)
+	if err != nil {
 		return nil, &HTTPError{
 			Error:   http.StatusBadRequest,
-			Message: "Reset token already used",
+			Message: "Invalid token",
 		}
 	}
 
-	if time.Now().After(reset.ExpiresAt) {
-		return nil, &HTTPError{
-			Error:   http.StatusBadRequest,
-			Message: "Reset token expired",
-		}
-	}
+	userID := int(claims["user_id"].(float64))
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	hashedPassword, err := utils.HashPassword(req.NewPassword)
 	if err != nil {
 		return nil, &HTTPError{
 			Error:   http.StatusInternalServerError,
@@ -284,23 +258,14 @@ func ResetPassword(req ResetPasswordRequest) (*APIResponse, *HTTPError) {
 	defer tx.Rollback(context.Background())
 
 	_, err = tx.Exec(context.Background(),
-		"UPDATE users SET password = $1 WHERE id = $2",
-		string(hashedPassword), reset.UserID)
+		"UPDATE users SET password_hash = $1 WHERE user_id = $2",
+		hashedPassword, userID)
 
 	if err != nil {
+		fmt.Println(err)
 		return nil, &HTTPError{
 			Error:   http.StatusInternalServerError,
 			Message: "Failed to update password",
-		}
-	}
-
-	_, err = tx.Exec(context.Background(),
-		"UPDATE password_resets SET used = TRUE WHERE id = $1", reset.ID)
-
-	if err != nil {
-		return nil, &HTTPError{
-			Error:   http.StatusInternalServerError,
-			Message: "Failed to update token",
 		}
 	}
 
@@ -311,22 +276,16 @@ func ResetPassword(req ResetPasswordRequest) (*APIResponse, *HTTPError) {
 		}
 	}
 
+	utils.InitRedis().Del(context.Background(), fmt.Sprintf("reset-pwd:%s", token)).Err()
+
 	return &APIResponse{
 		Success: true,
 		Message: "Password reset successfully",
 	}, nil
 }
 
-func generateToken() (string, error) {
-	bytes := make([]byte, 32)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(bytes), nil
-}
-
 func sendResetEmail(email, token string) error {
-	resetURL := fmt.Sprintf("http://localhost:3000/reset-password?token=%s", token)
+	resetURL := fmt.Sprintf("http://localhost:8080/reset-password?token=%s", token)
 	subject := "Password Reset Request"
 	body := fmt.Sprintf(`
 Hello,
@@ -343,15 +302,12 @@ Best regards,
 Noir
 `, resetURL)
 
-	// Create message
 	msg := fmt.Sprintf("To: %s\r\nSubject: %s\r\n\r\n%s", email, subject, body)
 
 	config := utils.Load().SMTP
 
-	// SMTP authentication
 	auth := smtp.PlainAuth("", config.Username, config.Password, config.Host)
 
-	// Send email
 	addr := fmt.Sprintf("%s:%d", config.Host, config.Port)
 	return smtp.SendMail(addr, auth, config.From, []string{email}, []byte(msg))
 }
