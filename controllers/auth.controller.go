@@ -3,7 +3,6 @@ package controllers
 import (
 	"net/http"
 	"noir-backend/models"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -82,19 +81,13 @@ func Login(c *gin.Context) {
 // @Failure 404 {object} models.HTTPError
 // @Router /auth/profile [get]
 func GetProfile(c *gin.Context) {
-	userIDStr, exists := c.Get("user_id")
+	userID, exists := c.Get("user_id")
 	if !exists {
 		models.NewError(c, http.StatusUnauthorized, "Status Unauthorized")
 		return
 	}
 
-	userID, err := strconv.Atoi(userIDStr.(string))
-	if err != nil {
-		models.NewError(c, http.StatusBadRequest, "Invalid user ID")
-		return
-	}
-
-	user, err := models.GetUserByID(userID)
+	user, err := models.GetUserByID(userID.(int))
 	if err != nil {
 		models.NewError(c, http.StatusNotFound, "User not found")
 		return
@@ -131,6 +124,17 @@ func Logout(c *gin.Context) {
 	})
 }
 
+// Forgot Password godoc
+// @Summary Request reset password if user forgot their password
+// @Description Request reset password user with email
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body models.PasswordResetRequest true "Forgot password request"
+// @Success 200 {object} models.APIResponse
+// @Failure 400 {object} models.HTTPError
+// @Failure 401 {object} models.HTTPError
+// @Router /auth/forgot-password [post]
 func ForgotPassword(c *gin.Context) {
 	var req models.PasswordResetRequest
 	if err := c.ShouldBind(&req); err != nil {
@@ -146,14 +150,27 @@ func ForgotPassword(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// Reset Password godoc
+// @Summary Reset password in new link provided
+// @Description Reset password user with new password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param token query string true "token request"
+// @Param request body models.ResetPasswordRequest true "Reset password request"
+// @Success 200 {object} models.APIResponse
+// @Failure 400 {object} models.HTTPError
+// @Failure 401 {object} models.HTTPError
+// @Router /auth/reset-password [post]
 func ResetPassword(c *gin.Context) {
+	token := c.Query("token")
 	var req models.ResetPasswordRequest
 	if err := c.ShouldBind(&req); err != nil {
 		models.NewError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	res, err := models.ResetPassword(req)
+	res, err := models.ResetPassword(req, token)
 	if err != nil {
 		models.NewError(c, err.Error, err.Message)
 	}
