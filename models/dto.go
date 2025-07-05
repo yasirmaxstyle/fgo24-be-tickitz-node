@@ -1,6 +1,8 @@
 package models
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 type RegisterRequest struct {
 	Email           string `form:"email" binding:"required,email"`
@@ -9,8 +11,8 @@ type RegisterRequest struct {
 }
 
 type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
+	Email    string `form:"email" json:"email" binding:"required,email"`
+	Password string `form:"password" json:"password" binding:"required"`
 }
 
 type RefreshTokenRequest struct {
@@ -19,9 +21,9 @@ type RefreshTokenRequest struct {
 
 type APIResponse struct {
 	Success bool        `json:"success"`
-	Message string      `jsong:"message"`
-	Data    interface{} `json:"data"`
-	Error   string      `json:"error"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+	Error   *string     `json:"error,omitempty"`
 }
 
 type AuthResponse struct {
@@ -30,12 +32,11 @@ type AuthResponse struct {
 }
 
 type PasswordResetRequest struct {
-	Email string `json:"email" binding:"required,email"`
+	Email string `form:"email" json:"email" binding:"required,email"`
 }
 
 type ResetPasswordRequest struct {
-	Token       string `json:"token" binding:"required"`
-	NewPassword string `json:"new_password" binding:"required,min=6"`
+	NewPassword string `form:"newPassword" json:"new_password" binding:"required,min=6"`
 }
 
 type HTTPError struct {
