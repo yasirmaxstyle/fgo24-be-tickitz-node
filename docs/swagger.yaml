@@ -1,3 +1,4 @@
+basePath: /
 definitions:
   models.APIResponse:
     properties:
@@ -33,6 +34,13 @@ definitions:
     - email
     - password
     type: object
+  models.PasswordResetRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
   models.RefreshTokenRequest:
     properties:
       refresh_token:
@@ -54,6 +62,14 @@ definitions:
     - email
     - password
     type: object
+  models.ResetPasswordRequest:
+    properties:
+      new_password:
+        minLength: 6
+        type: string
+    required:
+    - new_password
+    type: object
   models.User:
     properties:
       createdAt:
@@ -69,10 +85,40 @@ definitions:
     type: object
 info:
   contact: {}
-  description: backend server of movie ticketing NOIR app flow
-  title: NOIR Backend
+  description: backend server of movie ticketing NOIR Project
+  title: NOIR RESTful API
   version: "1.0"
 paths:
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Request reset password user with email
+      parameters:
+      - description: Forgot password request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.PasswordResetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Request reset password if user forgot their password
+      tags:
+      - auth
   /auth/login:
     post:
       consumes:
@@ -133,29 +179,6 @@ paths:
       summary: Logout user
       tags:
       - auth
-  /auth/profile:
-    get:
-      description: Get current user profile
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.User'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.HTTPError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/models.HTTPError'
-      security:
-      - BearerAuth: []
-      summary: Get user profile
-      tags:
-      - auth
   /auth/register:
     post:
       consumes:
@@ -186,4 +209,67 @@ paths:
       summary: Register a new user
       tags:
       - auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Reset password user with new password
+      parameters:
+      - description: token request
+        in: query
+        name: token
+        required: true
+        type: string
+      - description: Reset password request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Reset password in new link provided
+      tags:
+      - auth
+  /profile:
+    get:
+      description: Get current user profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      security:
+      - Token: []
+      summary: Get user profile
+      tags:
+      - profile
+securityDefinitions:
+  Token:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
