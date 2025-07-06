@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -50,4 +52,22 @@ func NewError(c *gin.Context, status int, err string) {
 		Message: err,
 	}
 	c.JSON(status, er)
+}
+
+type CreateMovieRequest struct {
+	Title       string    `json:"title" binding:"required"`
+	Overview    string    `json:"overview" binding:"required"`
+	Duration    int       `json:"duration" binding:"required,min=1"`
+	ReleaseDate time.Time `json:"release_date" binding:"required"`
+	DirectorsID *int      `json:"directors_id"`
+	Genres      []string  `json:"genres"`
+}
+
+type UpdateMovieRequest struct {
+	Title       *string    `json:"title"`
+	Overview    *string    `json:"overview"`
+	Duration    *int       `json:"duration"`
+	ReleaseDate *time.Time `json:"release_date"`
+	DirectorsID *int       `json:"directors_id"`
+	Genres      []string   `json:"genres"`
 }
