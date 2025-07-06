@@ -1,8 +1,24 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"noir-backend/router"
+
+	"github.com/gin-gonic/gin"
+)
+
+//@title NOIR RESTful API
+//@version 1.0
+//@description backend server of movie ticketing NOIR Project
+//@BasePath /
+
+//@securitydefinitions.apikey Token
+//@in header
+//@name	Authorization
 
 func main() {
 	r := gin.Default()
-	r.Run()
+
+	router.CombineRouter(r)
+
+	r.Run(":8080")
 }
