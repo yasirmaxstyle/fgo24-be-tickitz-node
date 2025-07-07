@@ -4,7 +4,7 @@
 title: ERD Movie Ticketing
 ---
 erDiagram
-direction TB
+direction LR
     user ||--O|profile : has
     user ||--o{transactions : creates
 
@@ -23,12 +23,12 @@ direction TB
 
     user{
         int user_id PK
-        string email
+        string email UK
         string password
-	string role "user,admin"
-	created_at timestamp
-	updated_at timestamp
-	last_login timestamp
+        string role "user,admin"
+        timestamp created_at
+        timestamp updated_at
+        timestamp last_login
         int profile_id FK
     }
 
@@ -37,19 +37,19 @@ direction TB
         string first_name
         string last_name
         string phone_number
-	string avatar
-	created_at timestamp
-	updated_at timestamp
+        string avatar
+        timestamp created_at
+        timestamp updated_at
     }
     
     transactions{
-        int transactions_id PK
-	string transaction_code UK
+        int transaction_id PK
+        string transaction_code UK
         string recipient_email
         string recipient_full_name
         string recipient_phone_number
         int total_seats
-        decimal total_amout "DECIMAL(10,2)
+        decimal total_amount "DECIMAL(10,2)"
         string status "pending, paid, cancelled"
         timestamp created_at
         timestamp expires_at
@@ -60,37 +60,40 @@ direction TB
 
     tickets{
         int ticket_id PK
-	string ticket_code UK
+        string ticket_code UK
         int showtime_id FK
         string seat_number
-	string status "booked, used, cancelled"
-        int transactions_id FK
-	decimal price "DECIMAL(10,2)"
+        string status "booked, used, cancelled"
+        int transaction_id FK
+        timestamp created_at
     }
 
     showtimes{
-	int showtime_id PK
-	int movie_id FK
-	int cinema_id FK
-	timestamp show_datetime
-	decimal price
-	int available_seats
-	timestamp created_at
+        int showtime_id PK
+        int movie_id FK
+        int cinema_id FK
+        timestamp show_datetime
+        decimal price "DECIMAL(10,2)"
+        int available_seats
+        timestamp created_at
     }
 
     cinemas{
-	int cinema_id PK
-	string name
-	string location
-	int total_seats
+        int cinema_id PK
+        string name
+        string location
+        int total_seats
+        string address
+        boolean is_active
+        timestamp created_at
     }
 
     payment_method{
         int payment_method_id PK
         string name
-	strinf code
-	boolean is_active
-	timestamp created_at
+        string code "EWALLET, CREDIT_CARD, BANK_TRANSFER"
+        boolean is_active
+        timestamp created_at
     }
 
     movies{
@@ -101,39 +104,47 @@ direction TB
         string overview
         int duration "in minutes"
         date release_date
-	string rating "G, PG, PG-13, R"
-        int directors_id FK
-	timestamp created_at
-	timestamp updated_at
+        string rating "G, PG, PG-13, R"
+        boolean is_active
+        int director_id FK
+        timestamp created_at
     }
 
     movies_cast{
-        int movies_cast_id PK
+        int movie_cast_id PK
         int movie_id FK
         int actor_id FK
-        string role
+        string role "character name"
+        int cast_order "for sorting"
     }
 
     actors{
-        int cast_id PK
+        int actor_id PK
         string first_name
         string last_name
+        string bio
+        date birth_date
+        string photo_path
     }
 
     movies_genres{
-        int movies_genres_id PK
+        int movie_genre_id PK
         int movie_id FK
         int genre_id FK
     }
 
     genres {
-	int genre_id PK
-	string name UK
+        int genre_id PK
+        string name UK
+        boolean is_active
     }
 
     directors{
-        int directors_id PK
+        int director_id PK
         string first_name
         string last_name
+        string bio
+        date birth_date
+        string photo_path
     }
 ```
