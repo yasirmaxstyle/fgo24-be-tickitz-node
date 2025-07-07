@@ -15,6 +15,7 @@ func CombineRouter(r *gin.Engine) {
 	r.Use(middleware.ErrorHandler())
 	authRouter(r.Group("/auth"))
 	adminRouter(r.Group("/admin"))
+	userRouter(r.Group("/profile"))
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 }
