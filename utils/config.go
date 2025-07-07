@@ -19,6 +19,7 @@ type Config struct {
 	JWTSecret     string
 	Port          string
 	SMTP          *SMTPConfig
+	Admin         *AdminConfig
 }
 
 type SMTPConfig struct {
@@ -29,6 +30,12 @@ type SMTPConfig struct {
 	From     string
 }
 
+type AdminConfig struct {
+	Username string
+	Email    string
+	Password string
+}
+
 func Load() *Config {
 	godotenv.Load()
 
@@ -37,18 +44,23 @@ func Load() *Config {
 		DBPort:        getEnv("DB_PORT", "5432"),
 		DBUser:        getEnv("DB_USER", "postgres"),
 		DBPassword:    getEnv("DB_PASSWORD", ""),
-		DBName:        getEnv("DB_NAME", "database"),
+		DBName:        getEnv("DB_NAME", "postgres"),
 		RedisHost:     getEnv("REDIS_HOST", "localhost"),
 		RedisPort:     getEnv("REDIS_PORT", "6379"),
 		RedisPassword: getEnv("REDIS_PASSWORD", ""),
 		JWTSecret:     getEnv("JWT_SECRET", "secretkey"),
 		Port:          getEnv("PORT", "8080"),
 		SMTP: &SMTPConfig{
-			Host:     getEnv("SMTP_HOST", ""),
-			Port:     getEnvInt("SMTP_PORT", 0),
-			Username: getEnv("SMTP_USERNAME", ""),
-			Password: getEnv("SMTP_PASSWORD", ""),
-			From:     getEnv("SMTP_FROM", ""),
+			Host:     getEnv("SMTP_HOST", "smtp.gmail.com"),
+			Port:     getEnvInt("SMTP_PORT", 587),
+			Username: getEnv("SMTP_USERNAME", "yasirmu77@gmail.com"),
+			Password: getEnv("SMTP_PASSWORD", "password"),
+			From:     getEnv("SMTP_FROM", "yasirmu77@gmail.com"),
+		},
+		Admin: &AdminConfig{
+			Username: getEnv("ADMIN_USERNAME", "admin"),
+			Email:    getEnv("ADMIN_EMAIL", "admin@mail.com"),
+			Password: getEnv("ADMIN_PASSWORD", "password"),
 		},
 	}
 }
