@@ -53,7 +53,7 @@ func CreateMovie(req CreateMovieRequest, posterPath, backdropPath string) (*Movi
 
 	tx, err := conn.Begin(context.Background())
 	if err != nil {
-		return nil, fmt.Errorf("Database transaction error")
+		return nil, fmt.Errorf("database transaction error")
 	}
 	defer tx.Rollback(context.Background())
 
@@ -64,12 +64,12 @@ func CreateMovie(req CreateMovieRequest, posterPath, backdropPath string) (*Movi
 		req.Title, posterPath, backdropPath, req.Overview, req.Duration, req.ReleaseDate, req.DirectorsID)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create movie: " + err.Error())
+		return nil, fmt.Errorf("failed to create movie: %w", err)
 	}
 
 	movie, err := pgx.CollectOneRow[Movie](row, pgx.RowToStructByName)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create movie: " + err.Error())
+		return nil, fmt.Errorf("failed to create movie: %w", err)
 	}
 
 	for _, genre := range req.Genres {
@@ -77,13 +77,13 @@ func CreateMovie(req CreateMovieRequest, posterPath, backdropPath string) (*Movi
 			"INSERT INTO movies_genres (movie_id, genre) VALUES ($1, $2)",
 			movie.MovieID, genre)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to add genre: " + err.Error())
+			return nil, fmt.Errorf("failed to add genre: %w", err)
 
 		}
 	}
 
 	if err = tx.Commit(context.Background()); err != nil {
-		return nil, fmt.Errorf("Failed to commit transaction")
+		return nil, fmt.Errorf("failed to commit transaction")
 	}
 
 	return &movie, nil
@@ -121,7 +121,6 @@ func UpdateMovie(c *gin.Context, id int, req UpdateMovieRequest) *HTTPError {
 		backdropPath = &backdrop
 	}
 
-	// Start transaction
 	tx, err := conn.Begin(context.Background())
 	if err != nil {
 		return &HTTPError{
@@ -175,12 +174,16 @@ func UpdateMovie(c *gin.Context, id int, req UpdateMovieRequest) *HTTPError {
 	// Add movie ID as last parameter
 	args = append(args, id)
 
-	query := fmt.Sprintf("UPDATE movies SET %s WHERE movie_id = $%d",
-		fmt.Sprintf(setParts[0]), argIndex)
-	for i := 1; i < len(setParts); i++ {
-		query = fmt.Sprintf("UPDATE movies SET %s WHERE movie_id = $%d",
-			fmt.Sprintf("%s, %s", query[20:len(query)-15], setParts[i]), argIndex)
+	// Build the SET clause by joining all setParts with commas
+	setClause := ""
+	if len(setParts) > 0 {
+		setClause = setParts[0]
+		for i := 1; i < len(setParts); i++ {
+			setClause += ", " + setParts[i]
+		}
 	}
+
+	query := fmt.Sprintf("UPDATE movies SET %s WHERE movie_id = $%d", setClause, argIndex)
 
 	// Execute update
 	_, err = tx.Exec(context.Background(), query, args...)
@@ -193,7 +196,6 @@ func UpdateMovie(c *gin.Context, id int, req UpdateMovieRequest) *HTTPError {
 
 	// Update genres if provided
 	if req.Genres != nil {
-		// Delete existing genres
 		_, err = tx.Exec(context.Background(),
 			"DELETE FROM movies_genres WHERE movie_id = $1", id)
 		if err != nil {
@@ -203,7 +205,6 @@ func UpdateMovie(c *gin.Context, id int, req UpdateMovieRequest) *HTTPError {
 			}
 		}
 
-		// Insert new genres
 		for _, genre := range req.Genres {
 			_, err = tx.Exec(context.Background(),
 				"INSERT INTO movies_genres (movie_id, genre) VALUES ($1, $2)",
