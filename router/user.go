@@ -9,6 +9,7 @@ import (
 
 func userRouter(r *gin.RouterGroup) {
 	r.Use(middleware.AuthMiddleware())
-	r.GET("/:id", controllers.GetProfile)
-	r.PATCH("/:id") //edit profile
+	r.GET("/", controllers.GetProfile)
+	r.POST("/logout", controllers.Logout)
+	r.PATCH("/") //edit profile
 }
