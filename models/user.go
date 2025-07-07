@@ -17,6 +17,7 @@ type User struct {
 	UserID       int        `json:"userId" db:"user_id"`
 	Email        string     `json:"email" db:"email"`
 	PasswordHash string     `json:"-" db:"password_hash"`
+	Role         string     `json:"-" db:"role"`
 	CreatedAt    time.Time  `json:"createdAt" db:"created_at"`
 	UpdatedAt    time.Time  `json:"updatedAt" db:"updated_at"`
 	LastLogin    *time.Time `json:"lastLogin,omitempty" db:"last_login"`
@@ -78,8 +79,8 @@ func CreateUser(req RegisterRequest) (*User, error) {
 	}
 
 	err = tx.QueryRow(context.Background(), `
-		INSERT INTO users (email, password_hash)
-		VALUES ($1, $2)
+		INSERT INTO users (email, password_hash, role)
+		VALUES ($1, $2, 'user')
 		RETURNING user_id`,
 		user.Email, user.PasswordHash).
 		Scan(&user.UserID)
@@ -109,8 +110,8 @@ func Login(req *LoginRequest) (*AuthResponse, error) {
 
 	user := &User{}
 	err = conn.QueryRow(context.Background(),
-		"SELECT user_id, email, password_hash, created_at, updated_at, last_login FROM users WHERE email = $1",
-		req.Email).Scan(&user.UserID, &user.Email, &user.PasswordHash, &user.CreatedAt, &user.UpdatedAt, &user.LastLogin)
+		"SELECT user_id, email, password_hash, role, created_at, updated_at, last_login FROM users WHERE email = $1",
+		req.Email).Scan(&user.UserID, &user.Email, &user.PasswordHash, &user.Role, &user.CreatedAt, &user.UpdatedAt, &user.LastLogin)
 	if err != nil {
 		fmt.Println(err)
 		return nil, errors.New("invalid credentials")
@@ -120,7 +121,7 @@ func Login(req *LoginRequest) (*AuthResponse, error) {
 		return nil, errors.New("invalid credentials")
 	}
 
-	token, err := utils.GenerateTokens(user.UserID, "user")
+	token, err := utils.GenerateTokens(user.UserID, user.Role)
 	if err != nil {
 		return nil, err
 	}
