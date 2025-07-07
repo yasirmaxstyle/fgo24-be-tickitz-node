@@ -17,6 +17,29 @@ definitions:
       user:
         $ref: '#/definitions/models.User'
     type: object
+  models.CreateMovieRequest:
+    properties:
+      directors_id:
+        type: integer
+      duration:
+        minimum: 1
+        type: integer
+      genres:
+        items:
+          type: string
+        type: array
+      overview:
+        type: string
+      release_date:
+        type: string
+      title:
+        type: string
+    required:
+    - duration
+    - overview
+    - release_date
+    - title
+    type: object
   models.HTTPError:
     properties:
       error:
@@ -70,6 +93,23 @@ definitions:
     required:
     - new_password
     type: object
+  models.UpdateMovieRequest:
+    properties:
+      directors_id:
+        type: integer
+      duration:
+        type: integer
+      genres:
+        items:
+          type: string
+        type: array
+      overview:
+        type: string
+      release_date:
+        type: string
+      title:
+        type: string
+    type: object
   models.User:
     properties:
       createdAt:
@@ -89,6 +129,99 @@ info:
   title: NOIR RESTful API
   version: "1.0"
 paths:
+  /admin/movie:
+    post:
+      description: Add new movie by admin
+      parameters:
+      - description: Create movie request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateMovieRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      security:
+      - Token: []
+      summary: Add new movie
+      tags:
+      - admin
+  /admin/movie/:id:
+    delete:
+      description: Delete existing movie by admin
+      parameters:
+      - description: Delete movie request
+        in: path
+        name: id_movie
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      security:
+      - Token: []
+      summary: Delete existing movie
+      tags:
+      - admin
+    patch:
+      description: Add existing movie by admin
+      parameters:
+      - description: Update movie request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateMovieRequest'
+      - description: Update movie request
+        in: path
+        name: id_movie
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      security:
+      - Token: []
+      summary: Update existing movie
+      tags:
+      - admin
   /auth/forgot-password:
     post:
       consumes:
@@ -116,7 +249,7 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/models.HTTPError'
-      summary: Request reset password if user forgot their password
+      summary: Request reset password
       tags:
       - auth
   /auth/login:
@@ -147,36 +280,6 @@ paths:
           schema:
             $ref: '#/definitions/models.HTTPError'
       summary: Login user
-      tags:
-      - auth
-  /auth/logout:
-    post:
-      consumes:
-      - application/json
-      description: Logout user by blacklisting refresh token
-      parameters:
-      - description: Logout request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.RefreshTokenRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Logout user
       tags:
       - auth
   /auth/register:
@@ -265,6 +368,36 @@ paths:
       security:
       - Token: []
       summary: Get user profile
+      tags:
+      - profile
+  /profile/logout:
+    post:
+      consumes:
+      - application/json
+      description: Logout user by blacklisting refresh token
+      parameters:
+      - description: Logout request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Logout user
       tags:
       - profile
 securityDefinitions:
