@@ -73,13 +73,13 @@ func Login(c *gin.Context) {
 // GetProfile godoc
 // @Summary Get user profile
 // @Description Get current user profile
-// @Tags auth
+// @Tags profile
 // @Produce json
-// @Security BearerAuth
+// @Security Token
 // @Success 200 {object} models.User
 // @Failure 401 {object} models.HTTPError
 // @Failure 404 {object} models.HTTPError
-// @Router /auth/profile [get]
+// @Router /profile [get]
 func GetProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
@@ -99,13 +99,13 @@ func GetProfile(c *gin.Context) {
 // Logout godoc
 // @Summary Logout user
 // @Description Logout user by blacklisting refresh token
-// @Tags auth
+// @Tags profile
 // @Accept json
 // @Produce json
 // @Param request body models.RefreshTokenRequest true "Logout request"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
-// @Router /auth/logout [post]
+// @Router /profile/logout [post]
 func Logout(c *gin.Context) {
 	var req models.RefreshTokenRequest
 	if err := c.ShouldBind(&req); err != nil {
@@ -125,7 +125,7 @@ func Logout(c *gin.Context) {
 }
 
 // Forgot Password godoc
-// @Summary Request reset password if user forgot their password
+// @Summary Request reset password
 // @Description Request reset password user with email
 // @Tags auth
 // @Accept json
