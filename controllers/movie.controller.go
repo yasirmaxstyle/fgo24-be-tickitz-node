@@ -8,7 +8,29 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Add Movie godoc
+// @Summary Add new movie
+// @Description Add new movie by admin
+// @Tags admin
+// @Produce json
+// @Param request body models.CreateMovieRequest true "Create movie request"
+// @Security Token
+// @Success 200 {object} models.APIResponse
+// @Failure 401 {object} models.HTTPError
+// @Failure 404 {object} models.HTTPError
+// @Router /admin/movie [post]
 func AddMovie(c *gin.Context) {
+	role, exists := c.Get("role")
+	if !exists {
+		models.NewError(c, http.StatusUnauthorized, "Status Unauthorized")
+		return
+	}
+
+	if role != "admin" {
+		models.NewError(c, http.StatusUnauthorized, "Status Unauthorized")
+		return
+	}
+
 	var req models.CreateMovieRequest
 
 	if err := c.ShouldBind(&req); err != nil {
@@ -38,7 +60,30 @@ func AddMovie(c *gin.Context) {
 	})
 }
 
+// Update Movie godoc
+// @Summary Update existing movie
+// @Description Add existing movie by admin
+// @Tags admin
+// @Produce json
+// @Param request body models.UpdateMovieRequest true "Update movie request"
+// @Param id_movie path integer true "Update movie request"
+// @Security Token
+// @Success 200 {object} models.APIResponse
+// @Failure 401 {object} models.HTTPError
+// @Failure 404 {object} models.HTTPError
+// @Router /admin/movie/:id [patch]
 func UpdateMovie(c *gin.Context) {
+	role, exists := c.Get("role")
+	if !exists {
+		models.NewError(c, http.StatusUnauthorized, "Status Unauthorized")
+		return
+	}
+
+	if role != "admin" {
+		models.NewError(c, http.StatusUnauthorized, "Status Unauthorized")
+		return
+	}
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.APIResponse{
@@ -67,7 +112,29 @@ func UpdateMovie(c *gin.Context) {
 	})
 }
 
+// Delete Movie godoc
+// @Summary Delete existing movie
+// @Description Delete existing movie by admin
+// @Tags admin
+// @Produce json
+// @Param id_movie path integer true "Delete movie request"
+// @Security Token
+// @Success 200 {object} models.APIResponse
+// @Failure 401 {object} models.HTTPError
+// @Failure 404 {object} models.HTTPError
+// @Router /admin/movie/:id [delete]
 func DeleteMovie(c *gin.Context) {
+	role, exists := c.Get("role")
+	if !exists {
+		models.NewError(c, http.StatusUnauthorized, "Status Unauthorized")
+		return
+	}
+
+	if role != "admin" {
+		models.NewError(c, http.StatusUnauthorized, "Status Unauthorized")
+		return
+	}
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.APIResponse{
