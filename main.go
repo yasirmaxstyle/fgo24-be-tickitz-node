@@ -2,6 +2,7 @@ package main
 
 import (
 	"noir-backend/router"
+	"noir-backend/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +20,8 @@ func main() {
 	r := gin.Default()
 
 	router.CombineRouter(r)
+
+	utils.SeedAdminUser()
 
 	r.Run(":8080")
 }
