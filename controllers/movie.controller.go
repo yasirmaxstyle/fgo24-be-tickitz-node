@@ -144,11 +144,6 @@ func DeleteMovie(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, models.APIResponse{
-		Success: true,
-		Message: "Movie deleted successfully",
-	})
-
 	if err := models.DeleteMovie(id); err != nil {
 		models.NewError(c, err.Error, err.Message)
 	}
