@@ -91,7 +91,7 @@ direction LR
     payment_method{
         int payment_method_id PK
         string name
-        string code "EWALLET, CREDIT_CARD, BANK_TRANSFER"
+        string code "EWALLET, BANK_TRANSFER"
         boolean is_active
         timestamp created_at
     }
@@ -105,7 +105,6 @@ direction LR
         int duration "in minutes"
         date release_date
         string rating "G, PG, PG-13, R"
-        boolean is_active
         int director_id FK
         timestamp created_at
     }
@@ -114,17 +113,13 @@ direction LR
         int movie_cast_id PK
         int movie_id FK
         int actor_id FK
-        string role "character name"
-        int cast_order "for sorting"
+        string role
     }
 
     actors{
         int actor_id PK
         string first_name
         string last_name
-        string bio
-        date birth_date
-        string photo_path
     }
 
     movies_genres{
@@ -136,15 +131,11 @@ direction LR
     genres {
         int genre_id PK
         string name UK
-        boolean is_active
     }
 
     directors{
         int director_id PK
         string first_name
         string last_name
-        string bio
-        date birth_date
-        string photo_path
     }
 ```
