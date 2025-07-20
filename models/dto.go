@@ -71,3 +71,22 @@ type UpdateMovieRequest struct {
 	DirectorsID *int       `json:"directors_id"`
 	Genres      []string   `json:"genres"`
 }
+
+type CreateTransactionRequest struct {
+	ShowtimeID        int      `json:"showtime_id" binding:"required"`
+	SeatNumbers       []string `json:"seat_numbers" binding:"required"`
+	RecipientEmail    string   `json:"recipient_email" binding:"required,email"`
+	RecipientFullName string   `json:"recipient_full_name" binding:"required"`
+	RecipientPhone    string   `json:"recipient_phone_number" binding:"required"`
+	PaymentMethodID   int      `json:"payment_method_id" binding:"required"`
+}
+
+type ProcessPaymentRequest struct {
+	TransactionCode string `json:"transaction_code" binding:"required"`
+	PaymentProof    string `json:"payment_proof,omitempty"`
+}
+
+type TransactionResponse struct {
+	Transaction Transaction `json:"transaction"`
+	Tickets     []Ticket    `json:"tickets"`
+}
