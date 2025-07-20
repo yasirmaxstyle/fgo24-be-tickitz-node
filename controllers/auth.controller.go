@@ -99,13 +99,14 @@ func GetProfile(c *gin.Context) {
 // Logout godoc
 // @Summary Logout user
 // @Description Logout user by blacklisting refresh token
-// @Tags profile
+// @Tags auth
 // @Accept json
 // @Produce json
 // @Param request body models.RefreshTokenRequest true "Logout request"
+// @Security Token
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
-// @Router /profile/logout [post]
+// @Router /auth/logout [post]
 func Logout(c *gin.Context) {
 	var req models.RefreshTokenRequest
 	if err := c.ShouldBind(&req); err != nil {
