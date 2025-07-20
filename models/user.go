@@ -171,7 +171,7 @@ func GetUserByID(userID int) (*Profile, error) {
 
 func Logout(token string) error {
 	// Blacklist refresh token
-	return utils.InitRedis().Set(context.Background(), fmt.Sprintf("blacklist:%s", token), "1", 24*time.Hour).Err()
+	return utils.InitRedis().Set(context.Background(), fmt.Sprintf("blacklist-token:%s", token), "1", 24*time.Hour).Err()
 }
 
 //forgot password
