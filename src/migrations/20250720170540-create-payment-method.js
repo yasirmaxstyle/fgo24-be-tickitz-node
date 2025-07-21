@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("payment_methods", {
+    await queryInterface.createTable("payment_method", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -18,19 +18,19 @@ module.exports = {
       is_active: {
         type: Sequelize.BOOLEAN
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE
       }
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("payment_methods");
-    await queryInterface.sequelize.query("DROP TYPE IF EXISTS \"enum_payment_methods_code\";");
+    await queryInterface.dropTable("payment_method");
+    await queryInterface.sequelize.query("DROP TYPE IF EXISTS \"enum_payment_method_code\";");
 
   }
 };
