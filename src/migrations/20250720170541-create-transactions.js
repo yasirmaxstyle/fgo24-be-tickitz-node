@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("Transactions", {
+    await queryInterface.createTable("transactions", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -41,7 +41,7 @@ module.exports = {
       created_by: {
         type: Sequelize.INTEGER,
         references: {
-          model: "User",
+          model: "users",
           key: "id"
         },
         onUpdate: "CASCADE",
@@ -50,7 +50,7 @@ module.exports = {
       payment_method_id: {
         type: Sequelize.INTEGER,
         references: {
-          model: "PaymentMethod",
+          model: "payment_method",
           key: "id"
         },
         onUpdate: "CASCADE",
@@ -67,7 +67,7 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("Transactions");
-    await queryInterface.sequelize.query("DROP TYPE IF EXISTS \"enum_Transactions_status\";");
+    await queryInterface.dropTable("transactions");
+    await queryInterface.sequelize.query("DROP TYPE IF EXISTS \"enum_transactions_status\";");
   }
 };

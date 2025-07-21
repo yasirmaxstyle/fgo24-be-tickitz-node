@@ -2,26 +2,31 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("Movies_genres", {
+    await queryInterface.createTable("users", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      movie_id: {
-        type: Sequelize.INTEGER,
-        references: {
-          model: "Movies",
-          key: "id"
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL"
+      email: {
+        type: Sequelize.STRING
       },
-      genre_id: {
+      password: {
+        type: Sequelize.STRING
+      },
+      role: {
+        type: Sequelize.ENUM("user", "admin"),
+        allowNull: false,
+        defaultValue: "user"
+      },
+      last_login: {
+        type: Sequelize.DATE
+      },
+      profile_id: {
         type: Sequelize.INTEGER,
         references: {
-          model: "Genres",
+          model: "profiles",
           key: "id"
         },
         onUpdate: "CASCADE",
@@ -38,6 +43,8 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("Movies_genres");
+    await queryInterface.dropTable("users");
+    await queryInterface.sequelize.query("DROP TYPE IF EXISTS \"enum_users_role\";");
+
   }
 };

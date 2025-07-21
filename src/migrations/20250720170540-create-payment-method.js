@@ -2,24 +2,21 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("Profiles", {
+    await queryInterface.createTable("payment_methods", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      first_name: {
+      name: {
         type: Sequelize.STRING
       },
-      last_name: {
-        type: Sequelize.STRING
+      code: {
+        type: Sequelize.ENUM("EWALLET", "BANK_TRANFER", "CREDIT_CARD")
       },
-      phone_number: {
-        type: Sequelize.STRING
-      },
-      avatar: {
-        type: Sequelize.STRING
+      is_active: {
+        type: Sequelize.BOOLEAN
       },
       createdAt: {
         allowNull: false,
@@ -32,6 +29,8 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("Profiles");
+    await queryInterface.dropTable("payment_methods");
+    await queryInterface.sequelize.query("DROP TYPE IF EXISTS \"enum_payment_methods_code\";");
+
   }
 };

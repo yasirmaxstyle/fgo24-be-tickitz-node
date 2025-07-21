@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("Showtimes", {
+    await queryInterface.createTable("showtimes", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -12,7 +12,7 @@ module.exports = {
       movie_id: {
         type: Sequelize.INTEGER,
         references: {
-          model: "Movie",
+          model: "movies",
           key: "id"
         },
         onUpdate: "CASCADE",
@@ -21,7 +21,7 @@ module.exports = {
       cinema_id: {
         type: Sequelize.INTEGER,
         references: {
-          model: "Cinema",
+          model: "cinemas",
           key: "id"
         },
         onUpdate: "CASCADE",
@@ -47,6 +47,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("Showtimes");
+    await queryInterface.dropTable("showtimes");
   }
 };

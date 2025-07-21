@@ -1,35 +1,39 @@
 "use strict";
-
-const { sequelize } = require("../models");
-
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("Users", {
+    await queryInterface.createTable("movies", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      email: {
+      title: {
         type: Sequelize.STRING
       },
-      password: {
+      poster_path: {
         type: Sequelize.STRING
       },
-      role: {
-        type: Sequelize.ENUM("user", "admin"),
-        allowNull: false,
-        defaultValue: "user"
+      backdrop_path: {
+        type: Sequelize.STRING
       },
-      last_login: {
-        type: Sequelize.DATE
+      overview: {
+        type: Sequelize.TEXT
       },
-      profile_id: {
+      duration: {
+        type: Sequelize.INTEGER
+      },
+      release_date: {
+        type: Sequelize.DATEONLY
+      },
+      rating: {
+        type: Sequelize.ENUM("G", "PG", "PG-13", "R")
+      },
+      director_id: {
         type: Sequelize.INTEGER,
         references: {
-          model: "Profiles",
+          model: "directors",
           key: "id"
         },
         onUpdate: "CASCADE",
@@ -37,19 +41,17 @@ module.exports = {
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: sequelize.literal("CURRENT_TIMETAMP")
+        type: Sequelize.DATE
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: sequelize.literal("CURRENT_TIMETAMP")
+        type: Sequelize.DATE
       }
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("Users");
-    await queryInterface.sequelize.query("DROP TYPE IF EXISTS \"enum_Users_role\";");
+    await queryInterface.dropTable("movies");
+    await queryInterface.sequelize.query("DROP TYPE IF EXISTS \"enum_movies_rating\";");
 
   }
 };
