@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
   }
 
   MovieGenre.init({
-    movie_genre_id: {
+    id: {
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,

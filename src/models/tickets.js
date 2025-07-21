@@ -21,8 +21,9 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
   }
+
   Ticket.init({
-    ticket_id: {
+    id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true
@@ -70,6 +71,7 @@ module.exports = (sequelize, DataTypes) => {
       }
     }
   });
+
   return Ticket;
 };
 

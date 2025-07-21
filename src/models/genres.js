@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
   }
 
   Genre.init({
-    genre_id: {
+    id: {
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,

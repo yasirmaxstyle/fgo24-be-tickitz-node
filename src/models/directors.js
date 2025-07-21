@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
   }
 
   Director.init({
-    director_id: {
+    id: {
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,

@@ -27,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Transaction.init({
-    transaction_id: {
+    id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true

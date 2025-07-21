@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
   }
 
   Actor.init({
-    actor_id: {
+    id: {
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,

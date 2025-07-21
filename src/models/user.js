@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      User.hasOne(models.Profile, {
+      User.belongsTo(models.Profile, {
         foreignKey: "profile_id",
         as: "profile"
       });
@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
   }
 
   User.init({
-    user_id: {
+    id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true

@@ -40,7 +40,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Movie.init({
-    movie_id: {
+    id: {
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,

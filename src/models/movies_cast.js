@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
   }
 
   MovieCast.init({
-    movie_cast_id: {
+    id: {
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
