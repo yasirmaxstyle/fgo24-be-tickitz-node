@@ -1,4 +1,4 @@
-# BACKEND ENVIRONMENT EWALLET
+# BACKEND ENVIRONMENT MOVIE TICKETING
 
 This project implement basic setup for backend of movie ticketing application using Node.js. This project utilizes Express.js as web framework integrated with PostgreSQL as databse. This project mainly use MVC pattern for better separation of concerns, which helps in building more organized and mantainable application.
 
