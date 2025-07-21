@@ -30,22 +30,16 @@ class AuthController {
       const user = await User.create({
         email,
         password: hashedPassword,
-        profile_id: profile.profile_id,
+        profile_id: profile.id,
         role: "user"
       });
 
-      const token = JWTUtils.generateToken({
-        userId: user.user_id,
-        email: user.email,
-        role: user.role
-      });
-
       const userResponse = {
-        user_id: user.user_id,
+        user_id: user.id,
         email: user.email,
         role: user.role,
         profile: {
-          profile_id: profile.profile_id,
+          profile_id: profile.id,
           first_name: profile.first_name,
           last_name: profile.last_name,
           phone_number: profile.phone_number,
@@ -57,8 +51,7 @@ class AuthController {
         success: true,
         message: "User registered successfully",
         data: {
-          user: userResponse,
-          token
+          user: userResponse
         }
       });
     } catch (error) {
