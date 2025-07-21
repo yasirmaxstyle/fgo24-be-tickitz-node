@@ -90,18 +90,18 @@ class AuthController {
       await user.update({ last_login: new Date() });
 
       const token = JWTUtils.generateToken({
-        userId: user.user_id,
+        userId: user.id,
         email: user.email,
         role: user.role
       });
 
       const userResponse = {
-        user_id: user.user_id,
+        user_id: user.id,
         email: user.email,
         role: user.role,
         last_login: user.last_login,
         profile: user.profile ? {
-          profile_id: user.profile.profile_id,
+          profile_id: user.profile.id,
           first_name: user.profile.first_name,
           last_name: user.profile.last_name,
           phone_number: user.profile.phone_number,
@@ -169,13 +169,7 @@ class AuthController {
         });
       }
 
-      const resetToken = crypto.randomBytes(32).toString("hex");
-      const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
-
-      await user.update({
-        reset_password_token: resetToken,
-        reset_password_expires: resetTokenExpiry
-      });
+      const resetToken = JWTUtils.generateToken({ userId: user.id })
 
       const firstName = user.profile ? user.profile.first_name : "User";
       const emailSent = await EmailService.sendResetPasswordEmail(
@@ -208,13 +202,10 @@ class AuthController {
     try {
       const { token, password } = req.body;
 
-      const user = await User.findOne({
-        where: {
-          reset_password_token: token,
-          reset_password_expires: {
-            [require("sequelize").Op.gt]: new Date()
-          }
-        }
+      const decoded = await JWTUtils.verifyToken(token)
+
+      const user = await User.findByPk(decoded.userId, {
+        include: [{ model: Profile, as: "profile" }]
       });
 
       if (!user) {
@@ -227,9 +218,7 @@ class AuthController {
       const hashedPassword = await argon2.hash(password);
 
       await user.update({
-        password: hashedPassword,
-        reset_password_token: null,
-        reset_password_expires: null
+        password: hashedPassword
       });
 
       res.json({
@@ -238,35 +227,6 @@ class AuthController {
       });
     } catch (error) {
       console.error("Reset password error:", error);
-      res.status(http.HTTP_STATUS_INTERNAL_SERVER_ERROR).json({
-        success: false,
-        message: "Internal server error"
-      });
-    }
-  }
-
-  static async getProfile(req, res) {
-    try {
-      const userResponse = {
-        user_id: req.user.user_id,
-        email: req.user.email,
-        role: req.user.role,
-        last_login: req.user.last_login,
-        profile: req.user.profile ? {
-          profile_id: req.user.profile.profile_id,
-          first_name: req.user.profile.first_name,
-          last_name: req.user.profile.last_name,
-          phone_number: req.user.profile.phone_number,
-          avatar: req.user.profile.avatar
-        } : null
-      };
-
-      res.json({
-        success: true,
-        data: { user: userResponse }
-      });
-    } catch (error) {
-      console.error("Get profile error:", error);
       res.status(http.HTTP_STATUS_INTERNAL_SERVER_ERROR).json({
         success: false,
         message: "Internal server error"
