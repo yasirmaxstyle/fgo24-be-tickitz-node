@@ -23,7 +23,7 @@ class ProfileController {
       if (phoneNumber !== undefined) updateData.phone_number = phoneNumber;
 
       if (avatar) {
-        const oldProfile = await Profile.findByPk(req.user.profile.profile_id);
+        const oldProfile = await Profile.findByPk(req.user.profile.id);
         if (oldProfile && oldProfile.avatar) {
           const oldAvatarPath = path.join(__dirname, "..", "uploads/avatars", oldProfile.avatar);
           if (fs.existsSync(oldAvatarPath)) {
@@ -34,17 +34,17 @@ class ProfileController {
       }
 
       await Profile.update(updateData, {
-        where: { profile_id: req.user.profile.profile_id }
+        where: { id: req.user.profile.id }
       });
 
-      const updatedProfile = await Profile.findByPk(req.user.profile.profile_id);
+      const updatedProfile = await Profile.findByPk(req.user.profile.id);
 
       res.json({
         success: true,
         message: "Profile updated successfully",
         data: {
           profile: {
-            profile_id: updatedProfile.profile_id,
+            profile_id: updatedProfile.id,
             first_name: updatedProfile.first_name,
             last_name: updatedProfile.last_name,
             phone_number: updatedProfile.phone_number,
@@ -77,7 +77,7 @@ class ProfileController {
         });
       }
 
-      const profile = await Profile.findByPk(req.user.profile.profile_id);
+      const profile = await Profile.findByPk(req.user.profile.id);
 
       if (profile && profile.avatar) {
         const avatarPath = path.join(__dirname, "..", "uploads/avatars", profile.avatar);
@@ -87,7 +87,7 @@ class ProfileController {
       }
 
       await Profile.destroy({
-        where: { profile_id: req.user.profile.profile_id }
+        where: { id: req.user.profile.id }
       });
 
       res.json({
@@ -116,7 +116,7 @@ class ProfileController {
         success: true,
         data: {
           profile: {
-            profile_id: req.user.profile.profile_id,
+            profile_id: req.user.id,
             first_name: req.user.profile.first_name,
             last_name: req.user.profile.last_name,
             phone_number: req.user.profile.phone_number,
