@@ -1,5 +1,4 @@
 const argon2 = require("argon2");
-const crypto = require("crypto");
 const { User, Profile } = require("../models");
 const JWTUtils = require("../utils/jwt");
 const TokenBlacklist = require("../utils/tokenBlacklist");
@@ -169,7 +168,7 @@ class AuthController {
         });
       }
 
-      const resetToken = JWTUtils.generateToken({ userId: user.id })
+      const resetToken = JWTUtils.generateToken({ userId: user.id });
 
       const firstName = user.profile ? user.profile.first_name : "User";
       const emailSent = await EmailService.sendResetPasswordEmail(
@@ -202,7 +201,7 @@ class AuthController {
     try {
       const { token, password } = req.body;
 
-      const decoded = await JWTUtils.verifyToken(token)
+      const decoded = await JWTUtils.verifyToken(token);
 
       const user = await User.findByPk(decoded.userId, {
         include: [{ model: Profile, as: "profile" }]
