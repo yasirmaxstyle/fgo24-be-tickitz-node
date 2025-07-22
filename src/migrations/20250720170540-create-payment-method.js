@@ -13,7 +13,7 @@ module.exports = {
         type: Sequelize.STRING
       },
       code: {
-        type: Sequelize.ENUM("EWALLET", "BANK_TRANFER", "CREDIT_CARD")
+        type: Sequelize.ENUM("EWALLET", "BANK_TRANSFER", "CREDIT_CARD")
       },
       is_active: {
         type: Sequelize.BOOLEAN
