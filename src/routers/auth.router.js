@@ -18,6 +18,5 @@ router.post("/reset-password", resetPasswordValidation, handleValidationErrors, 
 
 // Protected routes
 router.post("/logout", authMiddleware, AuthController.logout);
-router.get("/profile", authMiddleware, AuthController.getProfile);
 
 module.exports = router;
